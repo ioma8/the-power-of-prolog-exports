@@ -1,0 +1,21 @@
+{
+  "name": "export-node",
+  "packageManager": "yarn@4.4.1",
+  "type": "module",
+  "dependencies": {
+    "@lesjoursfr/html-to-epub": "^4.5.1",
+    "node-ebook-converter": "1.0.11"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.27.0",
+    "@types/node": "^22.14.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare-html": "npm run build && node dist/prepare_html.js",
+    "generate-epub": "npm run build && node dist/generate_epub.js",
+    "generate-pdf": "npm run build && node dist/generate_mobi.js"
+  }
+}
