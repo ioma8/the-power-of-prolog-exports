@@ -9,36 +9,44 @@ const __dirname = path.dirname(__filename);
 
 const OUTPUT_DIR = path.join(__dirname, '../../', 'tmp');
 
-async function prepareHtml(): Promise<void> {
+function prepareHtml(): void {
     try {
         console.log('Starting HTML preparation...');
 
-        const entries = await generateToc();
+        if (!fs.existsSync(OUTPUT_DIR)) {
+            fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+        }
+
+        const entries = generateToc();
+
+        const tocPath = path.join(OUTPUT_DIR, 'toc.json');
+        fs.writeFileSync(tocPath, JSON.stringify(entries), 'utf-8'); // TODO: toto nejak hapruje, kdyz to je spustene cele kk - fixnout
+
+        return;
 
         copyHtmlFiles(entries);
 
         cleanUpOutputFiles();
-
     } catch (error) {
         console.error('Error preparing HTML:', error);
         process.exit(1);
     }
 }
 
-async function cleanUpOutputFiles(): Promise<void> {
+function cleanUpOutputFiles(): void {
     try {
         console.log('Cleaning up output files...');
-        
+
         // Check if the directory exists
         if (fs.existsSync(OUTPUT_DIR)) {
             // Read all files in the directory
-            const files = fs.readdirSync(OUTPUT_DIR, {recursive: true});
+            const files = fs.readdirSync(OUTPUT_DIR, { recursive: true });
 
             // Delete each file
             for (const file of files) {
                 const filePath = path.join(OUTPUT_DIR, file.toString());
                 if (fs.existsSync(filePath) && fs.lstatSync(filePath).isFile()) {
-                    await cleanUpHtmlFile(filePath);                    
+                    cleanUpHtmlFile(filePath);
                 }
             }
         } else {
@@ -50,45 +58,46 @@ async function cleanUpOutputFiles(): Promise<void> {
     }
 }
 
-async function cleanUpHtmlFile(path: string): Promise<void> {
+function cleanUpHtmlFile(path: string): void {
     try {
         console.log(`Cleaning up HTML file: ${path}`);
         const fileContents = fs.readFileSync(path, 'utf-8');
-        const footerRegexp = /<br><br><br>\s*<b><a href="\/prolog">.*?<\/body>/gms;
+        const bodyContentRefexp = /<body.*?>(.*?)<\/body>/ms;
+        const res = bodyContentRefexp.exec(fileContents);
+        const bodyContent = res ? res[1] : '';
+
+        const footerRegexp = /<br><br><br>\s*<b><a href="\/prolog">.*$/gms;
         const stylesheetRegexp = /<link.*?>/gm;
         const imageRegexp = /<img.*?>/gm;
-        const titleRegexp = /<br><br>\s*<center><h1>.*?<\/h1><\/center>\s*<br><br>/gms; // TODO: nefunguje 
-        const fileContentsCleaned = fileContents
-        .replace(footerRegexp, '</body>')
-        .replace(stylesheetRegexp, '')
-        .replace(imageRegexp, '')
-        .replace(titleRegexp, '');
+        const titleRegexp = /.*<\/h1>\s*<\/center>\s*<br>/gms;
+        let finalContents = bodyContent
+            .replace(titleRegexp, '')
+            .replace(footerRegexp, '')
+            .replace(stylesheetRegexp, '')
+            .replace(imageRegexp, '');
 
-        const bodyContentRefexp = /<body.*?>(.*?)<\/body>/ms;
-        const res = bodyContentRefexp.exec(fileContentsCleaned);
-        const bodyContent = res ? res[1] : '';
-        fs.writeFileSync(path, bodyContent.trim(), 'utf-8');
+        if (path.endsWith('/prolog.html')) {
+            finalContents= finalContents
+                .replace(/^.*?<\/ol>\s*<\/div>\s*<br><br>/gms, '')
+                .replace(/<br><br><br><br>.*/gms, '');
+        }
+
+        fs.writeFileSync(path, finalContents.trim(), 'utf-8');
         console.log(`Cleaned and saved: ${path}`);
     } catch (error) {
         process.exit(1);
     }
 }
 
-async function copyHtmlFiles(entries: TocEntry[]): Promise<void> {
+function copyHtmlFiles(entries: TocEntry[]): void {
     try {
         console.log('Copying files...');
         const inputDir = path.join(__dirname, '../../',);
-
-        // Create output directory if it doesn't exist
-        if (!fs.existsSync(OUTPUT_DIR)) {
-            fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-        }
 
         for (const entry of entries) {
             const inputFilePath = path.join(inputDir, entry.url);
             const outputFilePath = path.join(OUTPUT_DIR, entry.url);
 
-            // Create output directory for the file if it doesn't exist
             const outputFileDir = path.dirname(outputFilePath);
             if (!fs.existsSync(outputFileDir)) {
                 fs.mkdirSync(outputFileDir, { recursive: true });
@@ -103,7 +112,7 @@ async function copyHtmlFiles(entries: TocEntry[]): Promise<void> {
     }
 }
 
-async function generateToc(): Promise<TocEntry[]> {
+function generateToc(): TocEntry[] {
     try {
         console.log('Generating table of contents...');
         const inputJsFile = path.join(__dirname, '../../', 'prolog', 'toc.js');
@@ -136,26 +145,6 @@ async function generateToc(): Promise<TocEntry[]> {
         }).filter(entry => entry !== null) as TocEntry[];
 
         console.log(`Found ${validatedEntries.length} entries in the table of contents.`);
-        console.log(validatedEntries);
-
-        const tocPath = path.join(OUTPUT_DIR, 'toc.html');
-
-        // Create output directory if it doesn't exist
-        if (!fs.existsSync(OUTPUT_DIR)) {
-            fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-        }
-
-        // Generate HTML content for the table of contents
-        let tocHtml = '<html><head><title>Table of Contents</title></head><body>';
-        tocHtml += '<h1>Table of Contents</h1>';
-        tocHtml += '<ul>';
-        validatedEntries.forEach(entry => {
-            tocHtml += `<li><a href="${entry.url}">${entry.title}</a></li>`;
-        });
-        tocHtml += '</ul>';
-        tocHtml += '</body></html>';
-        fs.writeFileSync(tocPath, tocHtml, 'utf-8');
-        console.log(`Table of contents generated at ${tocPath}`);
 
         return validatedEntries;
 
@@ -165,7 +154,7 @@ async function generateToc(): Promise<TocEntry[]> {
     }
 }
 
-type TocEntry = {
+export type TocEntry = {
     title: string;
     url: string;
 };

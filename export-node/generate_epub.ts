@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { TocEntry } from './prepare_html.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +12,9 @@ async function generateEpub(): Promise<void> {
     console.log(__dirname);
 
     const htmlDir = path.join(__dirname, '../../', 'tmp');
+    const tocFile = path.join(__dirname, '../../', 'tmp', 'toc.json');
+    const tocString = fs.readFileSync(tocFile, 'utf-8');
+    const toc = JSON.parse(tocString) as TocEntry[];
     const epubPath = path.join(__dirname, '../../', 'exports', 'the-power-of-prolog.epub');
 
     let contents: {
@@ -20,14 +24,11 @@ async function generateEpub(): Promise<void> {
 
     // Check if the directory exists
     if (fs.existsSync(htmlDir)) {
-        // Read all files in the directory
-        const files = fs.readdirSync(htmlDir, { recursive: true });
-
         // Process each file
-        for (const file of files) {
-            const filePath = path.join(htmlDir, file.toString());
+        for (const chapter of toc) {
+            const filePath = path.join(htmlDir, chapter.url);
             if (fs.existsSync(filePath) && fs.lstatSync(filePath).isFile()) {
-                const title = filePath.replace('.html', '');
+                const title = chapter.title
                 const content = fs.readFileSync(filePath, 'utf-8');
                 contents.push({
                     title: title,
@@ -45,6 +46,10 @@ async function generateEpub(): Promise<void> {
         author: 'Markus Triska',
         content: contents,
         description: 'The Power of Prolog is a collection of Prolog programs and their explanations.',
+        // TODO: add title page 
+        // TODO: add css - and fix code parts, notes, quotes (citaty na zacatku kapitol) etc.. 
+        // TODO: add cover image 
+        // TODO: add metadata - copyright date, keywords, website etc
     }
 
     try {
