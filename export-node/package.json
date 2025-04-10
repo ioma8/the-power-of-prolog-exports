@@ -16,6 +16,6 @@
   "scripts": {
     "build": "tsc",
     "prepare-html": "npm run build && node dist/prepare_html.js",
-    "generate-epub": "npm run build && node dist/generate_epub.js",
+    "generate-epub": "npm run build && node dist/generate_epub.js"
   }
 }
