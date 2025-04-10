@@ -34,7 +34,7 @@ jobs:
           tag_name: "release-${{ github.run_number }}"
           release_name: "eBook Release ${{ github.run_number }}"
           files: exports/the-power-of-prolog.epub
-          draft: false
+          draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
