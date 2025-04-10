@@ -1,6 +1,5 @@
 {
   "name": "export-node",
-  "packageManager": "yarn@4.4.1",
   "type": "module",
   "dependencies": {
     "@lesjoursfr/html-to-epub": "^4.5.1",

@@ -9,34 +9,63 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
           
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Install dependencies
         working-directory: ./export-node
-        run: yarn install
+        run: |
+          npm install
+
+      - name: Create tsconfig.json
+        working-directory: ./export-node
+        run: |
+          cat > tsconfig.json << 'EOL'
+          {
+            "compilerOptions": {
+              "target": "ES2020",
+              "module": "NodeNext",
+              "moduleResolution": "NodeNext",
+              "esModuleInterop": true,
+              "resolveJsonModule": true,
+              "outDir": "dist",
+              "strict": false,
+              "skipLibCheck": true,
+              "allowSyntheticDefaultImports": true,
+              "typeRoots": ["./node_modules/@types"],
+              "types": ["node"]
+            },
+            "ts-node": {
+              "esm": true
+            },
+            "include": ["*.ts"]
+          }
+          EOL
+
+      - name: Debug Node Modules
+        working-directory: ./export-node
+        run: |
+          ls -la node_modules/@types
+          ls -la node_modules/@types/node || echo "No node types directory"
 
       - name: Prepare HTML
         working-directory: ./export-node
-        run: yarn run prepare-html
+        run: NODE_OPTIONS="--experimental-specifier-resolution=node" npm run prepare-html
 
       - name: Generate EPUB
         working-directory: ./export-node
-        run: yarn run generate-epub
+        run: NODE_OPTIONS="--experimental-specifier-resolution=node" npm run generate-epub
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "release-${{ github.run_number }}"
           release_name: "eBook Release ${{ github.run_number }}"
-          files: exports/the-power-of-prolog.epub
+          files: ./exports/the-power-of-prolog.epub
           draft: true
           prerelease: false
         env:
