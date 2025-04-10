@@ -1,0 +1,35 @@
+name: Release eBook
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Prepare HTML
+        run: yarn run prepare-html
+
+      - name: Generate EPUB
+        run: yarn run generate-epub
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.0
+          release_name: "Release v1.0.0"
+          files: exports/the-power-of-prolog.epub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

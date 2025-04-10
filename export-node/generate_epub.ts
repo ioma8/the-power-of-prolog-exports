@@ -12,7 +12,9 @@ async function generateEpub(): Promise<void> {
     console.log(__dirname);
 
     const htmlDir = path.join(__dirname, '../../', 'tmp');
-    const tocFile = path.join(__dirname, '../../', 'tmp', 'toc.json');
+    const tocFile = path.join(htmlDir, 'toc.json');
+    const cssFile = path.join(htmlDir, 'prolog', 'prolog.css');
+    const coverPath = path.join(htmlDir, 'prolog_cover.png');
     const tocString = fs.readFileSync(tocFile, 'utf-8');
     const toc = JSON.parse(tocString) as TocEntry[];
     const epubPath = path.join(__dirname, '../../', 'exports', 'the-power-of-prolog.epub');
@@ -46,6 +48,9 @@ async function generateEpub(): Promise<void> {
         author: 'Markus Triska',
         content: contents,
         description: 'The Power of Prolog is a collection of Prolog programs and their explanations.',
+        css: cssFile,
+        cover: coverPath,
+        appendChapterTitles: false,
         // TODO: add title page 
         // TODO: add css - and fix code parts, notes, quotes (citaty na zacatku kapitol) etc.. 
         // TODO: add cover image 

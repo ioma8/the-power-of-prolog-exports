@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as parser from '@babel/parser';
 import { Identifier, NewExpression, ObjectExpression } from '@babel/types';
 import { fileURLToPath } from 'url';
+import { createCanvas } from 'canvas';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,14 +20,21 @@ function prepareHtml(): void {
 
         const entries = generateToc();
 
-        const tocPath = path.join(OUTPUT_DIR, 'toc.json');
-        fs.writeFileSync(tocPath, JSON.stringify(entries), 'utf-8'); // TODO: toto nejak hapruje, kdyz to je spustene cele kk - fixnout
-
-        return;
+        const cssFile = path.join(__dirname, '../../', 'prolog', 'prolog.css');
+        const cssOutputFile = path.join(OUTPUT_DIR, 'prolog.css');
+        if (fs.existsSync(cssFile)) {
+            fs.copyFileSync(cssFile, cssOutputFile);
+            console.log(`Copied ${cssFile} to ${cssOutputFile}`);
+        }
 
         copyHtmlFiles(entries);
 
         cleanUpOutputFiles();
+
+        const tocPath = path.join(OUTPUT_DIR, 'toc.json');
+        fs.writeFileSync(tocPath, JSON.stringify(entries), 'utf-8');
+
+        generateCoverImage();
     } catch (error) {
         console.error('Error preparing HTML:', error);
         process.exit(1);
@@ -71,13 +79,17 @@ function cleanUpHtmlFile(path: string): void {
         const imageRegexp = /<img.*?>/gm;
         const titleRegexp = /.*<\/h1>\s*<\/center>\s*<br>/gms;
         let finalContents = bodyContent
-            .replace(titleRegexp, '')
+            // .replace(titleRegexp, '')
+            .replace(/^\s*(<br>\s*)*/, '')
             .replace(footerRegexp, '')
             .replace(stylesheetRegexp, '')
-            .replace(imageRegexp, '');
+            .replace(/((?:href|src)\=\")(?!http)(\/?)(.*?\")/gm, '$1https://www.metalevel.at/prolog/$3')
+            // .replace(imageRegexp, '')
+            .replace(/margin\-left\: .+?%\;?/gm, '')
+            .replace(/style\=\".*?float\:.*?"/gm, '');
 
         if (path.endsWith('/prolog.html')) {
-            finalContents= finalContents
+            finalContents = finalContents
                 .replace(/^.*?<\/ol>\s*<\/div>\s*<br><br>/gms, '')
                 .replace(/<br><br><br><br>.*/gms, '');
         }
@@ -87,6 +99,79 @@ function cleanUpHtmlFile(path: string): void {
     } catch (error) {
         process.exit(1);
     }
+}
+
+function generateCoverImage() {
+    // Final image dimensions
+    const width = 500;
+    const height = 800;
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    // Background gradient (soft cream to white)
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#fdfcf9');
+    gradient.addColorStop(1, '#ffffff');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    // Center
+    const centerX = width / 2;
+
+    // Author name
+    ctx.fillStyle = '#222';
+    ctx.textAlign = 'center';
+    ctx.font = '18px serif';
+    ctx.fillText('Markus Triska', centerX, 60);
+
+    // === Horn Clause Logo ===
+    // Instead of drawing an abstract scale we now render a symbolic form of a definite Horn clause:
+    //    H ← B₁ ⋀ B₂ ⋀ B₃
+    ctx.fillStyle = '#000';
+    // Using a cool, elegant font
+    ctx.font = 'bold 28px Georgia';
+    // Positioned in the gap between the author and the title
+    ctx.fillText('H ← B₁ ⋀ B₂ ⋀ B₃', centerX, 170);
+
+    // === Title ===
+
+    // "The"
+    ctx.fillStyle = '#111';
+    ctx.font = 'italic 30px serif';
+    ctx.fillText('The', centerX, 240);
+
+    // "POWER"
+    ctx.font = 'bold 60px sans-serif';
+    ctx.fillText('POWER', centerX, 300);
+
+    // "of"
+    ctx.font = 'italic 28px serif';
+    ctx.fillText('of', centerX, 340);
+
+    // "PROLOG"
+    ctx.font = 'bold 50px sans-serif';
+    ctx.fillText('PROLOG', centerX, 400);
+
+    // Decorative line
+    ctx.beginPath();
+    ctx.moveTo(centerX - 80, 420);
+    ctx.lineTo(centerX + 80, 420);
+    ctx.strokeStyle = '#aaa';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // === Footer ===
+    ctx.fillStyle = '#444';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('© 2005–2025 Markus Triska', centerX, height - 60);
+    ctx.fillText('https://www.metalevel.at/prolog', centerX, height - 30);
+
+    // Save to file
+    const buffer = canvas.toBuffer('image/png');
+    const outputPath = path.join(OUTPUT_DIR, 'prolog_cover.png');
+    fs.writeFileSync(outputPath, buffer);
+
+    console.log('Image saved as prolog_cover.png');
 }
 
 function copyHtmlFiles(entries: TocEntry[]): void {

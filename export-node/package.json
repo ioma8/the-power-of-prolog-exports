@@ -4,6 +4,7 @@
   "type": "module",
   "dependencies": {
     "@lesjoursfr/html-to-epub": "^4.5.1",
+    "canvas": "^3.1.0",
     "node-ebook-converter": "1.0.11"
   },
   "devDependencies": {
@@ -16,6 +17,5 @@
     "build": "tsc",
     "prepare-html": "npm run build && node dist/prepare_html.js",
     "generate-epub": "npm run build && node dist/generate_epub.js",
-    "generate-pdf": "npm run build && node dist/generate_mobi.js"
   }
 }
