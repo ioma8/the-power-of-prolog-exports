@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { TocEntry } from './prepare_html.js';
+import { EpubContentOptions } from '@lesjoursfr/html-to-epub';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,10 +20,7 @@ async function generateEpub(): Promise<void> {
     const toc = JSON.parse(tocString) as TocEntry[];
     const epubPath = path.join(__dirname, '../../', 'exports', 'the-power-of-prolog.epub');
 
-    let contents: {
-        title: string;
-        data: string;
-    }[] = [];
+    let contents: EpubContentOptions[] = [];
 
     // Check if the directory exists
     if (fs.existsSync(htmlDir)) {
@@ -31,10 +29,10 @@ async function generateEpub(): Promise<void> {
             const filePath = path.join(htmlDir, chapter.url);
             if (fs.existsSync(filePath) && fs.lstatSync(filePath).isFile()) {
                 const title = chapter.title
-                const content = fs.readFileSync(filePath, 'utf-8');
+                const data = fs.readFileSync(filePath, 'utf-8');
                 contents.push({
-                    title: title,
-                    data: content
+                    title,
+                    data
                 });
                 console.log(`Added content from: ${filePath}`);
             }

@@ -90,7 +90,7 @@ function cleanUpHtmlFile(path: string): void {
 
         if (path.endsWith('/prolog.html')) {
             finalContents = finalContents
-                .replace(/^.*?<\/ol>\s*<\/div>\s*<br><br>/gms, '')
+                .replace(/<div.*?<ol.*?<br><br>/gms, '')
                 .replace(/<br><br><br><br>.*/gms, '');
         }
 
