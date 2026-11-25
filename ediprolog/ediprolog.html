@@ -16,13 +16,13 @@
     <table>
       <tr>
         <td>
-          <i>ediprolog</i> lets you interact with Prolog in all
-          Emacs&nbsp;buffers. You can consult Prolog programs and evaluate
+          <i>ediprolog</i> lets us interact with Prolog in all
+          Emacs&nbsp;buffers. We can consult Prolog programs and post
           embedded queries.
 
           <br><br>
 
-          The latest version of <i>ediprolog</i> is 2.3.
+          The latest version of <i>ediprolog</i> is 2.5-α1.
 
           <br><br>
 
@@ -33,8 +33,8 @@
           <blockquote>
             <b>New</b>:
             <ul>
-              <li>correctly handle consult output of recent Scryer Prolog versions</li>
-              <li>improved compatibility with older Emacs versions</li>
+              <li>Support for <b>quads</b>: If the query is not commented out, then the answers are also not commented out.</li>
+              <li>Also in Scryer Prolog, jump to position of first error during consulting, if any.</li>
             </ul>
           </blockquote>
           <br><br>
@@ -56,7 +56,7 @@
         <td style="vertical-align: top">
           <img style="width: 300; border: 2px solid black; margin-left: 2cm; margin-right: 2cm;"
                src="factorial.png"
-               alt="Factorial using CLP(FD)">
+               alt="Factorial using CLP(ℤ)">
         </td>
       </tr>
     </table>
@@ -96,7 +96,7 @@ M-x customize-group RET ediprolog RET
 
     The central function is <tt>ediprolog-dwim</tt> (Do What
     I&nbsp;Mean). I recommend to bind it to a suitable
-    key&nbsp;sequence. For example, you can bind it to the
+    key&nbsp;sequence. For example, we can bind it to the
     function&nbsp;key&nbsp;F10 with:
 
     <pre>
@@ -117,7 +117,7 @@ M-x customize-group RET ediprolog RET
 
     Depending on the content at point, <tt>ediprolog-dwim</tt> does
     the "appropriate" thing: If point is on a <i>query</i>, it sends
-    the query to a Prolog process, and you interact with the process
+    the query to a Prolog process, and we interact with the process
     in the current buffer as on a terminal.
 
     Queries in Prolog source files start with&nbsp;<tt>?-</tt>
@@ -129,29 +129,28 @@ M-x customize-group RET ediprolog RET
     An example of a query is:
 
     <pre>
-%?- member(X, "abc").
+?- member(X, "abc").
     </pre>
 
-    If you press <tt>F10</tt> when point is on that query, you get:
+    If we press <tt>F10</tt> when point is on that query, we get:
 
     <pre>
-%?- member(X, "abc").
-%@    X = a
-%@ ;  X = b
-%@ ;  X = c
-%@ ;  false.
+?- member(X, "abc").
+   X = a
+;  X = b
+;  X = c.
     </pre>
 
-    <p>If you press <tt>F10</tt> when point is <i>not</i> on a query,
+    <p>If we press <tt>F10</tt> when point is <i>not</i> on a query,
       the buffer content is consulted in the Prolog process, and point
-      is moved to the first error (if any). You do&nbsp;<i>not</i>
+      is moved to the first error (if any). We do&nbsp;<i>not</i>
       need to <i>save</i> the file beforehand, since the
       <i>buffer&nbsp;content</i> (not the file) is consulted.</p>
 
     <p>In transient mark mode, if the region is active, only the text
       in the region is consulted.</p>
 
-    <p>When waiting for output of the Prolog process, you can
+    <p>When waiting for output of the Prolog process, we can
       press&nbsp;<tt>C-g</tt> to unblock Emacs and continue with other
       work. To resume interaction with the Prolog process, use
       <tt>M-x&nbsp;ediprolog-toplevel&nbsp;RET</tt>.</p>
@@ -162,7 +161,7 @@ M-x customize-group RET ediprolog RET
     <p>
       Use <tt>M-x ediprolog-localize RET</tt> to make any Prolog
       process started in the current buffer <i>buffer-local</i>. This
-      way, you can run distinct processes simultaneously. Revert with
+      way, we can run distinct processes simultaneously. Revert with
       <tt>M-x&nbsp;ediprolog-unlocalize&nbsp;RET</tt>.</p>
 
     <br><br>
@@ -192,7 +191,7 @@ M-x customize-group RET ediprolog RET
 	<tr>
 	  <td><tt>C-u F10</tt></td>
 	  <td>first load buffer into existing process and then, if on
-            a query, evaluate it
+            a query, post it
 	  </td>
 	<tr>
 	  <td><tt>C-u C-u F10</tt>&nbsp;&nbsp;</td>
@@ -218,15 +217,15 @@ M-x customize-group RET ediprolog RET
   ?- Vs = [X,Y,Z],
      Vs <a href="/prolog/clpfd#domain">ins</a> 1..2,
      <a href="/prolog/clpfd#propagation">all_distinct</a>(Vs).
-  %@ false.
+     false.
 */
     </pre>
-    Using <a href="/pceprolog/">PceProlog</a>, you can quickly
+    Using <a href="/pceprolog/">PceProlog</a>, we can quickly
     create such comment blocks with <tt>C-c&nbsp;q</tt>.
 
     <br><br>
 
-    To evaluate a multi-line query, invoke <tt>ediprolog-dwim</tt> on
+    To post a multi-line query, invoke <tt>ediprolog-dwim</tt> on
     the <i>first</i>&nbsp;line of the query, which starts
     with&nbsp;<tt>?-</tt>.
 
