@@ -298,7 +298,7 @@ seqq([Es|Ess]) --&gt;
 
     In Scryer Prolog, <tt>seq//1</tt>, <tt>seqq//1</tt>
     and <tt>...&nbsp;//0</tt> are provided
-    by <a href="https://github.com/mthom/scryer-prolog/blob/master/src/lib/dcgs.pl"><tt>library(dcgs)</tt></a>.
+    by <a href="https://codeberg.org/mthom/scryer-prolog/raw/master/src/lib/dcgs.pl"><tt>library(dcgs)</tt></a>.
 
     <center><h2>List reversal, palindromes and other exercises</h2></center>
 
@@ -409,7 +409,7 @@ tree_nodes(node(Name, Left, Right)) --&gt;
     element must be available since the rule contains exactly one
     terminal, and we need to check this in advance to avoid unbounded
     recursion. We can do this by introducing two additional arguments
-    that let us limit the number of rule applications to the given
+    that let us limit the number of rule applications to a given
     list's length:
 
     <pre>
@@ -774,7 +774,7 @@ like(What) --&gt; "I like ", seq(What), ".", ... .
     example, the following DCG describes a list of whitespace
     characters in such a way that the longest such sequence is the
     first solution, using <tt>char_type/2</tt>
-    from <a href="https://github.com/mthom/scryer-prolog/blob/master/src/lib/charsio.pl"><tt>library(charsio)</tt></a> for character classification:
+    from <a href="https://codeberg.org/mthom/scryer-prolog/raw/master/src/lib/charsio.pl"><tt>library(charsio)</tt></a> for character classification:
 
     <pre>
 ws --&gt; [W], { char_type(W, whitespace) }, ws.
@@ -838,7 +838,7 @@ eos([], []).</pre>
 
     DCGs are also useful for describing <i>output</i>, because output
     is a list of characters.
-    In <a href="https://github.com/mthom/scryer-prolog/blob/master/src/lib/format.pl"><tt>library(format)</tt></a>,
+    In <a href="https://codeberg.org/mthom/scryer-prolog/raw/master/src/lib/format.pl"><tt>library(format)</tt></a>,
     Scryer Prolog provides the nonterminal <tt>format_//2</tt> to
     declaratively describe output based on a <i>format&nbsp;string</i>
     that defines the layout of specified arguments.
@@ -1024,8 +1024,8 @@ include_([L|Ls], Goal) --&gt;
 
     <center><h2>Current developments</h2></center>
 
-    DCGs are currently being considered for inclusion in the Prolog
-    ISO&nbsp;standard.
+    As of June 2025, DCGs are part of the Prolog ISO&nbsp;standard
+    as <a href="https://www.iso.org/standard/83635.html">ISO/IEC&nbsp;TS&nbsp;13211-3:2025</a>.
 
     <br><br>
 

@@ -23,7 +23,7 @@ This book is *self-hosting*: It includes an HTTP&nbsp;server that lets
 you browse most of the content locally. When you access files that are
 *not* locally available, it redirects to their online&nbsp;versions.
 
-You need [Scryer&nbsp;Prolog](https://github.com/mthom/scryer-prolog)
+You need [Scryer&nbsp;Prolog](https://codeberg.org/mthom/scryer-prolog)
 to run it. For example, to spawn the server on port&nbsp;6012, use:
 
     $ scryer-prolog -g "server(6012)" server.pl
@@ -57,7 +57,6 @@ To run the code examples, you can use every Prolog implementation that
 conforms to the Prolog ISO&nbsp;standard and provides the following
 conforming extensions:
 
-- Definite Clause Grammars (DCGs)
 - constraints like `dif/2` and declarative integer arithmetic
 - alternative execution strategies such as SLG&nbsp;resolution.
 
@@ -81,7 +80,7 @@ set to the value&nbsp;`chars` so that strings in double-quotes are
 interpreted as lists of *characters*. This was the case in the
 original Prolog implementation, Marseille Prolog, and is already the
 default value in the four newest Prolog implementations,
-[Scryer&nbsp;Prolog](https://github.com/mthom/scryer-prolog),
+[Scryer&nbsp;Prolog](https://codeberg.org/mthom/scryer-prolog),
 [Tau&nbsp;Prolog](https://github.com/tau-prolog/tau-prolog),
 [Trealla&nbsp;Prolog](https://github.com/trealla-prolog/trealla) and
 [ichiban/prolog](https://github.com/ichiban/prolog). It is to be hoped
@@ -148,6 +147,13 @@ this&nbsp;book in their&nbsp;courses! For example:
   Intelligence&nbsp;I](https://github.com/ikokkari/AI) at the G.
   Raymond&nbsp;Chang School of Continuing&nbsp;Education,
   Ryerson&nbsp;University, in Canada.
+- As of 2025, Wang-Zhou Dai's research group is using
+  *The Power of Prolog* in the [2025&nbsp;Summer&nbsp;Seminar](https://xinshuangz.github.io/2025_logic_program/)
+  at Nanjing&nbsp;University in&nbsp;China.
+- As of 2026, François Bry is using *The Power of Prolog* in his
+  [Master Seminar: Programming
+  in&nbsp;Prolog](https://www.tcs.ifi.lmu.de/teaching/courses-ss-2026/programming-in-prolog)
+  at the Ludwig-Maximilians-Universität München in Germany.
 - I hope you are next!
 
 <pre>

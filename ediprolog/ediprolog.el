@@ -1,6 +1,6 @@
 ;;; ediprolog.el --- Emacs Does Interactive Prolog
 
-;; Copyright (C) 2006-2024  Markus Triska
+;; Copyright (C) 2006-2026  Markus Triska
 
 ;; Author: Markus Triska <triska@metalevel.at>
 ;; Keywords: languages, processes
@@ -21,8 +21,8 @@
 
 ;;; Commentary:
 
-;; These definitions let you interact with Prolog in all buffers.
-;; You can consult Prolog programs and evaluate embedded queries.
+;; These definitions let us interact with Prolog in all buffers.
+;; We can consult Prolog programs and post embedded queries.
 
 ;; Installation
 ;; ============
@@ -47,26 +47,25 @@
 ;; The central function is `ediprolog-dwim' (Do What I Mean), which is
 ;; bound to F10 by the snippet above. Depending on the content at
 ;; point, `ediprolog-dwim' does the "appropriate" thing: If point is
-;; on a query, F10 sends the query to a Prolog process, and you
+;; on a query, F10 sends the query to a Prolog process, and we
 ;; interact with the process in the current buffer as on a terminal.
 ;; Queries start with "?-" or ":-", possibly preceded by "%" and
 ;; whitespace. An example of a query is (without leading ";;"):
 ;;
-;;   %?- member(X, "abc").
+;;   ?- member(X, "abc").
 ;;
-;; If you press F10 when point is on that query, you get:
+;; If we press F10 when point is on that query, we get:
 ;;
-;;   %?- member(X, "abc").
-;;   %@    X = a
-;;   %@ ;  X = b
-;;   %@ ;  X = c
-;;   %@ ;  false.
+;;   ?- member(X, "abc").
+;;      X = a
+;;   ;  X = b
+;;   ;  X = c.
 ;;
-;; When waiting for output of the Prolog process, you can press C-g to
+;; When waiting for output of the Prolog process, we can press C-g to
 ;; unblock Emacs and continue with other work. To resume interaction
 ;; with the Prolog process, use M-x ediprolog-toplevel RET.
 
-;; If you press F10 when point is *not* on a query, the buffer content
+;; If we press F10 when point is *not* on a query, the buffer content
 ;; is consulted in the Prolog process, and point is moved to the first
 ;; error (if any). In transient mark mode, if the region is active,
 ;; only the text in the region is consulted.
@@ -75,7 +74,7 @@
 ;; process are logged in the buffer "*ediprolog-history*".
 
 ;; Use M-x ediprolog-localize RET to make any Prolog process started
-;; in the current buffer buffer-local. This way, you can run distinct
+;; in the current buffer buffer-local. This way, we can run distinct
 ;; processes simultaneously. Revert with M-x ediprolog-unlocalize RET.
 
 ;; `ediprolog-dwim' with prefix arguments has special meanings:
@@ -84,15 +83,15 @@
 ;;   C-1 F10       always consult buffer (even when point is on a query)
 ;;   C-2 F10       always consult buffer, using a new process
 ;;   C-7 F10       equivalent to `ediprolog-toplevel'
-;;   C-u F10       first consult buffer, then evaluate query (if any)
+;;   C-u F10       first consult buffer, then post query (if any)
 ;;   C-u C-u F10   like C-u F10, with a new process
 
-;; Tested with Scryer Prolog 0.9.3 and SWI-Prolog 8.1.24,
-;; using Emacs versions 26.1, 27.0.50 and 30.0.50.
+;; Tested with Scryer Prolog 0.10.0 and SWI-Prolog 8.1.24,
+;; using Emacs versions 26.1, 30.2 and 31.0.90 among others.
 
 ;;; Code:
 
-(defconst ediprolog-version "2.3")
+(defconst ediprolog-version "2.5-α1")
 
 (defgroup ediprolog nil
   "Transparent interaction with Prolog."
@@ -117,11 +116,11 @@
 
 (defcustom ediprolog-program-switches nil
   "List of switches passed to the Prolog process. Example:
-'(\"-G128M\" \"-O\")"
+\\='(\"-f\")"
   :group 'ediprolog
   :type '(repeat string))
 
-(defcustom ediprolog-prefix "%@ "
+(defcustom ediprolog-default-prefix "%@ "
   "String to prepend when inserting output from the Prolog
 process into the buffer."
   :group 'ediprolog
@@ -133,33 +132,36 @@ nil to never truncate the history."
   :group 'ediprolog
   :type 'sexp)
 
-(defvar ediprolog-process               nil "A Prolog process.")
+(defvar ediprolog-process nil
+  "A Prolog process.")
 
-(defvar ediprolog-temp-buffer           nil
+(defvar ediprolog-temp-buffer nil
   "Buffer that temporarily saves process output ")
 
-(defvar ediprolog-seen-prompt           nil
+(defvar ediprolog-seen-prompt nil
   "Whether a prompt was (recently) emitted by the Prolog process.")
 
-(defvar ediprolog-read-term             nil
+(defvar ediprolog-read-term nil
   "Whether the Prolog process waits for the user to enter a term.")
 
-(defvar ediprolog-indent-prefix         ""
+(defvar ediprolog-indent-prefix ""
   "Any whitespace occurring before the most recently executed query.")
 
-(defvar ediprolog-temp-file             nil
+(defvar ediprolog-prefix "")
+
+(defvar ediprolog-temp-file nil
   "File name of a temporary file used for consulting the buffer.")
 
 (defvar ediprolog-consult-buffer "*ediprolog-consult*"
   "Buffer used to display consult output.")
 
-(defvar ediprolog-consult-window        nil
+(defvar ediprolog-consult-window nil
   "Window used to show consult output.")
 
-(defvar ediprolog-history-buffer        nil
+(defvar ediprolog-history-buffer nil
   "Buffer that stores recent interactions.")
 
-(defvar ediprolog-interrupted           nil
+(defvar ediprolog-interrupted nil
   "True iff waiting for the previous query was interrupted with C-g.")
 
 (defun ediprolog-prompt ()
@@ -355,9 +357,12 @@ arguments, equivalent to `ediprolog-remove-interactions'."
   (when (and (not (and transient-mark-mode mark-active))
              (save-excursion
                (beginning-of-line)
-               (looking-at "\\([\t ]*\\)%*[\t ]*[:?]- *")))
+               (looking-at "\\([\t ]*\\)\\(%*\\)[\t ]*[:?]- *")))
     ;; whitespace preceding the query is the indentation level
-    (setq ediprolog-indent-prefix (match-string 1))
+    (setq ediprolog-indent-prefix (match-string 1)
+          ediprolog-prefix (if (string= (match-string 2) "")
+                               ""
+                             ediprolog-default-prefix))
     (let* ((from (goto-char (match-end 0)))
            (to (if (re-search-forward "\\.[\t ]*\\(?:%.*\\)?$" nil t)
                    ;; omit trailing whitespace
@@ -461,13 +466,15 @@ want to resume interaction with the toplevel."
 In transient mark mode, if the region is active, the function
 operates on the region."
   (interactive)
-  (save-excursion
-    (save-restriction
-      (when (and transient-mark-mode mark-active)
-        (narrow-to-region (region-beginning) (region-end)))
-      (goto-char (point-min))
-      (flush-lines (concat "^[\t ]*" (regexp-quote ediprolog-prefix)))))
-  (message "Interactions removed."))
+  (if (string= ediprolog-prefix "")
+      (error "Cannot remove Prolog interactions because ediprolog-prefix is empty")
+    (save-excursion
+      (save-restriction
+        (when (and transient-mark-mode mark-active)
+          (narrow-to-region (region-beginning) (region-end)))
+        (goto-char (point-min))
+        (flush-lines (concat "^[\t ]*" (regexp-quote ediprolog-prefix)))))
+    (message "Interactions removed.")))
 
 
 ;;;###autoload
@@ -522,9 +529,12 @@ operates on the region."
                                "Region" "Buffer"))
   ;; go to line of the first error, if any
   (let ((line (with-current-buffer ediprolog-temp-buffer
-                (when (save-excursion
-                        (goto-char (point-min))
-                        (re-search-forward "^ERROR.*?:\\([0-9]+\\)" nil t))
+                (when (or (save-excursion
+                            (goto-char (point-min))
+                            (re-search-forward "^ERROR.*?:\\([0-9]+\\)" nil t))
+                          (save-excursion
+                            (goto-char (point-min))
+                            (re-search-forward "^ *error(.*:\\([0-9]+\\)" nil t)))
                   (string-to-number (match-string 1))))))
     (when line
       (let ((p (point)))

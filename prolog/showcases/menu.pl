@@ -2,14 +2,14 @@
    Menu show case.
    ===============
 
-   Written 2016-2024 by Markus Triska (triska@metalevel.at).
+   Written 2016-2026 by Markus Triska (triska@metalevel.at).
    Public domain code. Tested with Scryer Prolog.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- use_module(library(format)).
 :- use_module(library(dcgs)).
 :- use_module(library(lists)).
-:- use_module(library(charsio)).  % for get_single_char/1
+:- use_module(library(charsio), [get_single_char/1]).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    There are two kinds of elements in a menu:
@@ -36,21 +36,21 @@ is_element(E) :- is_menu(E).
    Sample menu.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-menu(menu('Main', _,
-          [option(optA, a),
-           menu('Submenu B', b,
-                [option(optC, c),
-                 menu('Submenu D', d,
-                      [option(optE, e),
-                       option(optF, f)]),
-                 menu('Submenu G', g,
-                      [option(optH, h),
-                       option(optI, i)]),
-                 option(optJ, j)]),
-           option(optK, k),
-           menu('Submenu J', j,
-                [option(optK, k),
-                 option(optL, l)])])).
+menu(menu("Main", _,
+          [option("optA", a),
+           menu("Submenu B", b,
+                [option("optC", c),
+                 menu("Submenu D", d,
+                      [option("optE", e),
+                       option("optF", f)]),
+                 menu("Submenu G", g,
+                      [option("optH", h),
+                       option("optI", i)]),
+                 option("optJ", j)]),
+           option("optK", k),
+           menu("Submenu J", j,
+                [option("optK", k),
+                 option("optL", l)])])).
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,13 +65,13 @@ menu(menu('Main', _,
    Sample use:
 
    ?- use_module(library(lambda)).
-   %@    true.
+      true.
    ?- Cs+\(menu(M), phrase(menu_chars(M), Cs)).
-   %@    Cs = "optA (a)   Submenu  ...".
+      Cs = "optA (a)   Submenu B ...".
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 menu_chars(menu(_,_,Subs))  --> format_menu(Subs).
-menu_chars(option(Title,_)) --> format_("~w", [Title]).
+menu_chars(option(Title,_)) --> format_("~s", [Title]).
 
 format_menu([]) --> [].
 format_menu([M|Ms]) --> format_menu_(Ms, M).
@@ -82,8 +82,8 @@ format_menu_([N|Ms], M) -->
         "   ",
         format_menu_(Ms, N).
 
-format_element(option(Title,Key)) --> format_("~w (~w)", [Title,Key]).
-format_element(menu(Title,_,_)) --> format_("~w", [Title]).
+format_element(option(Title,Key)) --> format_("~s (~w)", [Title,Key]).
+format_element(menu(Title,_,_)) --> format_("~s", [Title]).
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -107,7 +107,7 @@ format_element(menu(Title,_,_)) --> format_("~w", [Title]).
    The nice thing is that such relations can be for example *tested*
    by simple Prolog queries:
 
-   ?- menu(M0), menu0_key_menu(M0, b, M), M = menu('Submenu B', _, _).
+   ?- menu(M0), menu0_key_menu(M0, b, M), M = menu("Submenu B", _, _).
 
    This is not possible, or at least *much harder*, if menus are only
    implicitly displayed on the system terminal, or such transitions
@@ -141,7 +141,7 @@ menu0_key_menu(menu(_,_,Subs), Key, Menu) :-
    Sample use:
 
    ?- menu(M), display_menu(M).
-   %@ optA (a)   Submenu B   optK (k)   Submenu J
+   optA (a)   Submenu B   optK (k)   Submenu J
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- use_module(library(pio)).
@@ -185,15 +185,15 @@ interaction(M0, Hs0) :-
    Sample run:
 
    ?- run.
-   %@ optA (a)   Submenu B   optK (k)   Submenu J
-   %@ optA
-   %@ optA (a)   Submenu B   optK (k)   Submenu J
-   %@ optC (c)   Submenu D   Submenu G   optJ (j)
-   %@ no entry found for "b" -- please try again
-   %@ optC (c)   Submenu D   Submenu G   optJ (j)
-   %@ optE (e)   optF (f)
-   %@ optE
-   %@ optE (e)   optF (f)
-   %@ optC (c)   Submenu D   Submenu G   optJ (j)
-   %@ no entry found for "a" -- please try again
+   optA (a)   Submenu B   optK (k)   Submenu J
+   optA
+   optA (a)   Submenu B   optK (k)   Submenu J
+   optC (c)   Submenu D   Submenu G   optJ (j)
+   no entry found for "b" -- please try again
+   optC (c)   Submenu D   Submenu G   optJ (j)
+   optE (e)   optF (f)
+   optE
+   optE (e)   optF (f)
+   optC (c)   Submenu D   Submenu G   optJ (j)
+   no entry found for "a" -- please try again
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

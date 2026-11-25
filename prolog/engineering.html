@@ -55,7 +55,7 @@
     <table>
       <tr>
         <td><i>Video</i>:</td>
-        <td><a href="/prolog/videos/emacs"><img src="/prolog/videos/t_emacs.png" alt="Prolog development with GNU Emacs"></a>
+        <td><a href="videos/emacs"><img src="videos/t_emacs.png" alt="Prolog development with GNU Emacs"></a>
         </td>
       </tr>
     </table>
@@ -118,13 +118,13 @@
     Different Prolog systems provide different ways to <i>time</i>
     and <i>profile</i> your&nbsp;predicates. For example, in
     Scryer&nbsp;Prolog, you can use the predicate <tt>time/1</tt>
-    from <a href="https://github.com/mthom/scryer-prolog/blob/master/src/lib/time.pl"><tt>library(time)</tt></a>
+    from <a href="https://codeberg.org/mthom/scryer-prolog/raw/master/src/lib/time.pl"><tt>library(time)</tt></a>
     to measure the run&nbsp;time of any goal. For example:
 
     <pre>
 ?- <b>time</b>((X in 0..1_000,indomain(X),false)).
-   <b>% CPU time: 0.389s</b>
-false.
+   <b>% CPU time: 0.029s, 262_448 inferences</b>
+   false.
     </pre>
 
     SWI-Prolog ships with a very nice <i>profiler</i> which you can
@@ -202,10 +202,10 @@ goal_time(Goal, T) :-
 
     <pre>
 ?- X #= a.
-ERROR: <b>Domain error</b>: `clpfd_expression' expected, found `a'
+   error(domain_error(clpz_expression,a),unknown(a)-1).
 
 ?- X in Y.
-ERROR: Arguments are not sufficiently instantiated
+   error(instantiation_error,instantiation_error(unknown(_143),1)).
     </pre>
 
     It is easy to see that adding further constraints can make
@@ -213,8 +213,7 @@ ERROR: Arguments are not sufficiently instantiated
 
     <pre>
 ?- <b>Y = 0..5</b>, X in Y.
-Y = 0..5,
-X in 0..5.
+   Y = 0..5, clpz:(X in 0..5).
     </pre>
 
     However, no additional goal can ever
@@ -249,7 +248,16 @@ X in 0..5.
 
     <br><br>
 
-    There is a unit testing framework
+    The best way to write unit tests in Prolog is to
+    use <b>quads</b>: <i>queries using answer descriptions</i>. Quads
+    are verbatim copies of toplevel annotations, possibly extended
+    with annotations. See for
+    instance <a href="https://github.com/trealla-prolog/trealla/blob/main/library/quads.pl"><tt>library(quads)</tt></a>
+    in Trealla&nbsp;Prolog.
+
+    <br><br>
+
+    There is also a unit testing framework
     called <a href="http://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/plunit.html%27)">PlUnit</a>
     that is available for SWI-Prolog <i>and</i> for SICStus&nbsp;Prolog.
 
